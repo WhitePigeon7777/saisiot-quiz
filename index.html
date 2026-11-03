@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>사이시옷 규정 퀴즈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root{color-scheme:light}
+body{margin:0}
+/* Layout: 한 장짜리 학습 도구 — 상단 탭, 가운데 큰 낱말 카드, 그 아래 '어종 × 소리' 2×3 선택 행렬 */
+:root{
+  --bg:#ECEFEA; --surface:#F9FAF7; --ink:#1C2830; --muted:#5D6A6E; --line:#D1D8D0;
+  --accent:#2B5A7A; --accent-soft:#DCE7EE; --ok:#2C7A4C; --ok-soft:#DCEFE3; --bad:#B8402C; --bad-soft:#F6E0DA;
+  --hanja:#8A5A12;
+  --display:"Nanum Myeongjo","Noto Serif KR","AppleMyungjo",serif;
+  --body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13191C; --surface:#1B2327; --ink:#E5EBE9; --muted:#97A5A7; --line:#2D393E;
+  --accent:#86B5D6; --accent-soft:#22343F; --ok:#6CC28F; --ok-soft:#1D3327; --bad:#F08068; --bad-soft:#3A221D;
+  --hanja:#E2B266; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#13191C; --surface:#1B2327; --ink:#E5EBE9; --muted:#97A5A7; --line:#2D393E;
+  --accent:#86B5D6; --accent-soft:#22343F; --ok:#6CC28F; --ok-soft:#1D3327; --bad:#F08068; --bad-soft:#3A221D;
+  --hanja:#E2B266; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
+h1{font-family:var(--display);font-weight:800;font-size:1.6rem;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:.85rem;margin:2px 0 0}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tabs button{border:0;background:none;color:var(--muted);font:600 .85rem var(--body);padding:6px 12px;border-radius:7px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--surface)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:600 .9rem var(--body);border-radius:9px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.warn{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.btn:disabled{opacity:.45;cursor:default}
+.muted{color:var(--muted)}
+.small{font-size:.8rem}
+
+/* 진행 상태 */
+.status{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pill{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+
+/* 낱말 카드 */
+.word{font-family:var(--display);font-weight:800;font-size:clamp(3rem,13vw,4.6rem);text-align:center;line-height:1.1;padding-block:22px 6px;letter-spacing:.02em}
+.parts{text-align:center;min-height:1.6em;font-size:1rem;color:var(--muted)}
+.parts b{color:var(--ink)}
+.parts .hj{color:var(--hanja);font-weight:600}
+
+/* 선택 행렬 */
+.matrix{display:grid;grid-template-columns:62px repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}
+.mh{font-size:.72rem;color:var(--muted);text-align:center;align-self:end;line-height:1.3;padding-bottom:2px}
+.mh b{display:block;color:var(--ink);font-size:.8rem}
+.rh{font-size:.74rem;color:var(--muted);align-self:center;line-height:1.3}
+.rh b{display:block;color:var(--ink);font-size:.8rem}
+.opt{position:relative;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:12px 6px;cursor:pointer;font:700 1rem var(--body);font-variant-numeric:tabular-nums;min-height:58px;transition:border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt kbd{position:absolute;top:4px;right:6px;font:500 .62rem var(--body);color:var(--muted)}
+.opt.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.opt.no{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.opt.wide{grid-column:2 / -1;font-size:.9rem}
+
+.fb{border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.fb.ok{background:var(--ok-soft)} .fb.no{background:var(--bad-soft)}
+.fb .verdict{font-weight:700}
+.fb.ok .verdict{color:var(--ok)} .fb.no .verdict{color:var(--bad)}
+.fb ul{margin:0;padding-left:18px}
+.note{border-left:3px solid var(--hanja);padding-left:10px;color:var(--ink)}
+
+/* 결과 */
+.score{font-family:var(--display);font-weight:800;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.75rem;color:var(--muted);font-weight:600}
+td.w{font-family:var(--display);font-weight:800;font-size:1.05rem}
+td .x{color:var(--bad)} td .o{color:var(--ok);font-weight:700}
+
+/* 규정표 */
+.rule{display:flex;flex-direction:column;gap:8px;padding-block:14px;border-bottom:1px solid var(--line)}
+.rule:last-child{border-bottom:0}
+.rule h3{margin:0;font-size:.95rem;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.rule h3 .code{font-variant-numeric:tabular-nums;color:var(--accent)}
+.rule p{margin:0;font-size:.8rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--display);font-weight:700;font-size:.98rem;border:1px solid var(--line);border-radius:7px;padding:3px 9px;background:var(--bg)}
+.chip small{font-family:var(--body);font-weight:400;font-size:.7rem;color:var(--muted);margin-left:4px}
+.tip{background:var(--accent-soft);border-radius:10px;padding:12px 14px;font-size:.86rem}
+.tip ol{margin:4px 0 0;padding-left:18px}
+
+@media (max-width:480px){
+  .matrix{grid-template-columns:48px repeat(3,minmax(0,1fr));gap:5px}
+  .opt{font-size:.88rem;padding:10px 2px}
+  .panel{padding:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>사이시옷 규정 퀴즈</h1>
+      <p class="sub">한글 맞춤법 제30항 · 낱말을 보고 어느 규정에 속하는지 고르기</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button id="tab-quiz" role="tab" aria-selected="true">퀴즈</button>
+      <button id="tab-rules" role="tab" aria-selected="false">규정표</button>
+    </div>
+  </header>
+
+  <!-- 시작 화면 -->
+  <section id="v-start" class="panel" style="display:flex;flex-direction:column;gap:16px">
+    <div class="row">
+      <button class="btn primary" id="btn-start">전체 풀기 <span class="muted small" id="cnt" style="color:inherit;opacity:.8"></span></button>
+      <button class="btn warn" id="btn-saved" hidden>지난 오답 이어 풀기</button>
+    </div>
+    <p class="muted small" style="margin:0">키보드: 1·2·3(윗줄) 4·5·6(아랫줄) 7(한자어) 선택 · Enter 다음 문제</p>
+  </section>
+
+  <!-- 문제 화면 -->
+  <section id="v-quiz" class="panel" hidden style="flex-direction:column;gap:14px">
+    <div class="status"><span><span class="pill" id="round-pill">전체</span></span><span id="prog">1 / 82</span><span id="tally">맞음 0 · 틀림 0</span></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="word" id="word">냇가</div>
+    <div class="parts" id="parts">&nbsp;</div>
+    <div class="matrix" id="matrix"></div>
+    <div id="fb" hidden></div>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn" id="btn-quit">그만하고 결과 보기</button>
+      <button class="btn primary" id="btn-next" disabled>다음 →</button>
+    </div>
+  </section>
+
+  <!-- 결과 화면 -->
+  <section id="v-result" class="panel" hidden style="flex-direction:column;gap:16px">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div>
+        <div class="muted small" id="res-label">전체 결과</div>
+        <div class="score" id="res-score">0 / 0</div>
+      </div>
+      <div class="row">
+        <button class="btn warn" id="btn-retry">오답 다시 풀기</button>
+        <button class="btn" id="btn-restart">처음부터</button>
+      </div>
+    </div>
+    <div id="res-body"></div>
+  </section>
+
+  <!-- 규정표 -->
+  <section id="v-rules" class="panel" hidden></section>
+</div>
+
+<script>
+const CATS = {
+  c11:{code:'1-(1)', row:1, col:1, name:'순우리말 합성어 · 뒷말 첫소리가 된소리', ex:'바닷가 [바다까/바닫까]'},
+  c12:{code:'1-(2)', row:1, col:2, name:"순우리말 합성어 · 'ㄴ, ㅁ' 앞에서 'ㄴ' 덧남", ex:'빗물 [빈물]'},
+  c13:{code:'1-(3)', row:1, col:3, name:"순우리말 합성어 · 모음 앞에서 'ㄴㄴ' 덧남", ex:'나뭇잎 [나문닙]'},
+  c21:{code:'2-(1)', row:2, col:1, name:'순우리말+한자어 · 뒷말 첫소리가 된소리', ex:'귓병 [귀뼝/귇뼝]'},
+  c22:{code:'2-(2)', row:2, col:2, name:"순우리말+한자어 · 'ㄴ, ㅁ' 앞에서 'ㄴ' 덧남", ex:'양칫물 [양친물]'},
+  c23:{code:'2-(3)', row:2, col:3, name:"순우리말+한자어 · 모음 앞에서 'ㄴㄴ' 덧남", ex:'가욋일 [가왼닐/가웬닐]'},
+  c3 :{code:'3',     row:3, col:0, name:'두 음절로 된 한자어 6개 (예외적으로 사이시옷)', ex:'횟수 [회쑤/휃쑤]'}
+};
+// [낱말, 앞말, 뒷말]  — 한자는 괄호로 표기
+const RAW = {
+  c11:[['고랫재','고래','재'],['귓밥','귀','밥'],['나룻배','나루','배'],['나뭇가지','나무','가지'],['냇가','내','가'],['댓가지','대','가지'],['뒷갈망','뒤','갈망'],['맷돌','매','돌'],['머릿기름','머리','기름'],['모깃불','모기','불'],['못자리','모','자리'],['바닷가','바다','가'],['뱃길','배','길'],['볏가리','벼','가리'],['부싯돌','부시','돌'],['선짓국','선지','국'],['쇳조각','쇠','조각'],['아랫집','아래','집'],['우렁잇속','우렁이','속'],['잇자국','이','자국'],['잿더미','재','더미'],['조갯살','조개','살'],['찻집','차','집'],['쳇바퀴','체','바퀴'],['킷값','키','값'],['핏대','피','대'],['햇볕','해','볕'],['혓바늘','혀','바늘']],
+  c12:[['멧나물','메','나물'],['아랫니','아래','이'],['텃마당','터','마당'],['아랫마을','아래','마을'],['뒷머리','뒤','머리'],['잇몸','이','몸'],['깻묵','깨','묵'],['냇물','내','물'],['빗물','비','물']],
+  c13:[['도리깻열','도리깨','열'],['뒷윷','뒤','윷'],['두렛일','두레','일'],['뒷일','뒤','일'],['뒷입맛','뒤','입맛'],['베갯잇','베개','잇'],['욧잇','요','잇'],['깻잎','깨','잎'],['나뭇잎','나무','잎'],['댓잎','대','잎']],
+  c21:[['귓병','귀','병(病)'],['머릿방','머리','방(房)'],['뱃병','배','병(病)'],['봇둑','보(洑)','둑'],['사잣밥','사자(使者)','밥'],['샛강','새','강(江)'],['아랫방','아래','방(房)'],['자릿세','자리','세(貰)'],['전셋집','전세(傳貰)','집'],['찻잔','차','잔(盞)'],['찻종','차','종(鍾)'],['촛국','초(醋)','국'],['콧병','코','병(病)'],['탯줄','태(胎)','줄'],['텃세','터','세(勢)'],['핏기','피','기(氣)'],['햇수','해','수(數)'],['횟가루','회(灰)','가루']],
+  c22:[['곗날','계(契)','날'],['제삿날','제사(祭祀)','날'],['훗날','후(後)','날'],['툇마루','퇴(退)','마루'],['양칫물','양치(養齒)','물']],
+  c23:[['가욋일','가외(加外)','일'],['사삿일','사사(私私)','일'],['예삿일','예사(例事)','일'],['훗일','후(後)','일']],
+  c3 :[['곳간','庫','間'],['셋방','貰','房'],['숫자','數','字'],['찻간','車','間'],['툇간','退','間'],['횟수','回','數']]
+};
+const HANJA3 = {곳간:'庫間',셋방:'貰房',숫자:'數字',찻간:'車間',툇간:'退間',횟수:'回數'};
+const NOTES = {
+  찻집:"'차(茶)'는 한자이지만 고유어처럼 굳어진 말로 보아 규정 예시에서 1번(순우리말)에 들어감. 찻잔·찻종은 뒷말 잔(盞)·종(鍾)이 한자어라 2-(1).",
+  찻잔:"앞말 '차'는 고유어처럼 취급, 뒷말 '잔(盞)'이 한자어 → 2번 줄. 찻집(1-(1))과 짝으로 외우기.",
+  찻종:"뒷말 '종(鍾)'이 한자어 → 2번 줄. 찻집은 1-(1).",
+  찻간:"'차간(車間)'은 앞뒤 모두 한자 → 3번 두 음절 한자어. 찻잔·찻종(2-(1))과 구별.",
+  아랫니:"'이(齒)'는 모음으로 시작하지만 [아랜니]로 소리 나 규정상 1-(2) 'ㄴ' 덧남에 들어감. 1-(3)과 헷갈리기 쉬운 단골 함정.",
+  텃세:"터 + 세(勢) → 한자어 포함이라 2-(1). 텃마당은 순우리말끼리라 1-(2).",
+  텃마당:"터 + 마당 모두 순우리말 → 1번 줄. 텃세(2-(1))와 구별.",
+  햇수:"해 + 수(數) → 2-(1). 횟수(回數)는 앞뒤 모두 한자라 3번.",
+  횟수:"회(回) + 수(數) 모두 한자 → 3번. 햇수(해+數)는 2-(1).",
+  횟가루:"회(灰) + 가루 → 2-(1). 횟수(回數)와 구별.",
+  툇마루:"퇴(退) + 마루 → 2-(2). 툇간(退間)은 두 음절 한자어 3번.",
+  툇간:"퇴(退) + 간(間) 모두 한자 → 3번. 툇마루는 2-(2).",
+  셋방:"세(貰) + 방(房) 모두 한자 → 3번. 전셋집·자릿세는 2-(1).",
+  훗날:"후(後) + 날 → 2-(2). 훗일은 뒷말이 모음이라 2-(3).",
+  훗일:"후(後) + 일 → 2-(3). 훗날은 2-(2).",
+  뒷일:"뒤 + 일 모두 순우리말 → 1-(3). 훗일(後+일)은 2-(3).",
+  쇳조각:"규정 예시상 '조각'을 순우리말로 보아 1-(1).",
+  욧잇:"요 + 잇 → [욘닏]. 베갯잇과 같은 1-(3).",
+  잇몸:"이 + 몸, 뒷말이 ㅁ으로 시작 → 1-(2). 잇자국은 된소리라 1-(1)."
+};
+const ROWNAME = {1:'순우리말<br>+순우리말',2:'순우리말<br>+한자어'};
+const COLNAME = {1:'된소리',2:"'ㄴ' 덧남",3:"'ㄴㄴ' 덧남"};
+const COLSUB = {1:'그 밖의 자음',2:'뒷말 ㄴ·ㅁ',3:'뒷말 모음'};
+const KEYMAP = {'1':'c11','2':'c12','3':'c13','4':'c21','5':'c22','6':'c23','7':'c3'};
+
+const ALL = [];
+for (const c in RAW) for (const [w,a,b] of RAW[c]) ALL.push({w,a,b,c});
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+let S = {queue:[],i:0,ok:0,wrong:[],round:0,answered:false,useH3:true};
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function pool(){return ALL}
+function fmtPart(s){return s.replace(/\(([^)]+)\)/g,'<span class="hj">($1)</span>')}
+function show(v){for(const id of ['v-start','v-quiz','v-result','v-rules']){const el=$(id);el.hidden=id!==v;if(!el.hidden&&el.style.flexDirection)el.style.display='flex'}}
+
+function updateCount(){$('cnt').textContent=`(${pool().length}개)`;
+  const saved=store.get('saisiot-wrong');$('btn-saved').hidden=!(saved&&saved.length);
+  if(saved&&saved.length)$('btn-saved').textContent=`지난 오답 이어 풀기 (${saved.length}개)`;}
+
+function buildMatrix(){
+  const m=$('matrix');let h='<div></div>';
+  for(let c=1;c<=3;c++)h+=`<div class="mh"><b>${COLNAME[c]}</b>${COLSUB[c]}</div>`;
+  for(let r=1;r<=2;r++){h+=`<div class="rh"><b>${r}번</b>${ROWNAME[r]}</div>`;
+    for(let c=1;c<=3;c++){const k='c'+r+c;const n=(r-1)*3+c;h+=`<button class="opt" data-c="${k}" id="o-${k}"><kbd>${n}</kbd>${CATS[k].code}</button>`}}
+  if(S.useH3)h+=`<div class="rh"><b>3번</b>한자어</div><button class="opt wide" data-c="c3" id="o-c3"><kbd>7</kbd>3 · 두 음절 한자어</button>`;
+  m.innerHTML=h;
+  m.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>answer(b.dataset.c)));
+}
+
+function startRound(list,label){
+  S.queue=shuffle(list);S.i=0;S.ok=0;S.wrong=[];S.answered=false;S.label=label;
+  buildMatrix();show('v-quiz');renderQ();
+}
+function renderQ(){
+  const q=S.queue[S.i];S.answered=false;
+  $('round-pill').textContent=S.label;$('round-pill').className='pill'+(S.round>0?' bad':'');
+  $('prog').textContent=`${S.i+1} / ${S.queue.length}`;
+  $('tally').textContent=`맞음 ${S.ok} · 틀림 ${S.wrong.length}`;
+  $('bar').style.width=(S.i/S.queue.length*100)+'%';
+  $('word').textContent=q.w;$('parts').innerHTML='&nbsp;';
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=false;b.classList.remove('ok','no')});
+  $('fb').hidden=true;$('btn-next').disabled=true;
+}
+function initialOf(ch){const code=ch.charCodeAt(0)-0xAC00;return code<0||code>11171?-1:Math.floor(code/588)}
+function answer(pick){
+  if(S.answered)return;S.answered=true;
+  const q=S.queue[S.i];const right=pick===q.c;
+  if(right)S.ok++;else S.wrong.push({...q,pick});
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.dataset.c===q.c)b.classList.add('ok');else if(b.dataset.c===pick)b.classList.add('no')});
+  if(q.c==='c3')$('parts').innerHTML=`<b>${q.w}</b> <span class="hj">(${HANJA3[q.w]})</span> — 앞뒤 모두 한자`;
+  else $('parts').innerHTML=`<b>${fmtPart(q.a)}</b> + <b>${fmtPart(q.b)}</b>`;
+  const cat=CATS[q.c];let why=[];
+  if(q.c!=='c3'){
+    why.push(cat.row===1?'앞말·뒷말 모두 순우리말 → <b>1번 줄</b>':'한자어가 섞임 → <b>2번 줄</b>');
+    const first=q.b.replace(/\(.*\)/,'')[0];const ini=initialOf(first);
+    const soundTxt=cat.col===1?`뒷말 '${first}' → <b>된소리</b>`:cat.col===2?`뒷말 '${first}'${ini===11?" (본래 '니')":''} → <b>'ㄴ' 덧남</b>`:`뒷말 '${first}' 모음 시작 → <b>'ㄴㄴ' 덧남</b>`;
+    why.push(soundTxt);
+  } else why.push('두 음절 한자어 중 사이시옷을 적는 6개뿐 → <b>3번</b>');
+  const fb=$('fb');fb.className='fb '+(right?'ok':'no');
+  fb.innerHTML=`<div class="verdict">${right?'정답':'오답'} · ${cat.code} ${cat.name}</div>
+    <ul>${why.map(x=>`<li>${x}</li>`).join('')}</ul>
+    ${!right?`<div class="small">고른 답: ${CATS[pick].code} ${CATS[pick].name}</div>`:''}
+    ${NOTES[q.w]?`<div class="note small">${NOTES[q.w]}</div>`:''}`;
+  fb.hidden=false;$('tally').textContent=`맞음 ${S.ok} · 틀림 ${S.wrong.length}`;
+  $('btn-next').disabled=false;$('btn-next').textContent=S.i+1<S.queue.length?'다음 →':'결과 보기 →';$('btn-next').focus();
+}
+function next(){if(!S.answered)return;S.i++;if(S.i<S.queue.length)renderQ();else finish()}
+function finish(){
+  const total=Math.min(S.i,S.queue.length);
+  store.set('saisiot-wrong',S.wrong.map(x=>x.w));
+  $('res-label').textContent=S.label+' 결과';
+  $('res-score').textContent=`${S.ok} / ${total}`;
+  $('btn-retry').hidden=!S.wrong.length;
+  $('btn-retry').textContent=`오답 다시 풀기 (${S.wrong.length}개)`;
+  let h='';
+  if(!S.wrong.length)h=`<p style="margin:0">틀린 낱말이 없습니다. ${S.round>0?'오답을 모두 정리했어요.':''}</p>`;
+  else{
+    // 헷갈린 패턴 요약
+    const pat={};S.wrong.forEach(x=>{const k=CATS[x.c].code+' → '+CATS[x.pick].code;pat[k]=(pat[k]||0)+1});
+    const top=Object.entries(pat).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    h+=`<div class="tip small"><b>자주 헷갈린 쌍</b> (정답 → 고른 답): ${top.map(([k,v])=>`${k} ×${v}`).join(' · ')}</div>`;
+    h+=`<div class="tbl-wrap"><table><thead><tr><th>낱말</th><th>짜임</th><th>정답</th><th>고른 답</th></tr></thead><tbody>`;
+    for(const x of S.wrong){const parts=x.c==='c3'?`<span class="hj" style="color:var(--hanja)">${HANJA3[x.w]}</span>`:fmtPart(x.a)+' + '+fmtPart(x.b);
+      h+=`<tr><td class="w">${x.w}</td><td>${parts.replace(/class="hj"/g,'style="color:var(--hanja)"')}</td><td><span class="o">${CATS[x.c].code}</span></td><td><span class="x">${CATS[x.pick].code}</span></td></tr>`}
+    h+='</tbody></table></div>';
+  }
+  $('res-body').innerHTML=h;show('v-result');
+}
+
+function renderRules(){
+  let h=`<div class="tip">한글 맞춤법 제30항 — 사이시옷은 다음 경우에 받치어 적는다. 줄은 <b>어종</b>, 칸은 <b>뒷말 첫소리</b>로 가릅니다.</div>`;
+  for(const c in CATS){const cat=CATS[c];
+    h+=`<div class="rule"><h3><span class="code">${cat.code}</span>${cat.name}</h3><p>예) ${cat.ex} · ${RAW[c].length}개</p><div class="chips">`;
+    for(const [w,a,b] of RAW[c]){const sm=c==='c3'?HANJA3[w]:`${a}+${b}`;h+=`<span class="chip">${w}<small>${sm}</small></span>`}
+    h+='</div></div>'}
+  $('v-rules').innerHTML=h;
+}
+
+function setTab(t){$('tab-quiz').setAttribute('aria-selected',t==='quiz');$('tab-rules').setAttribute('aria-selected',t==='rules');
+  if(t==='rules'){S.prevView=['v-start','v-quiz','v-result'].find(id=>!$(id).hidden)||'v-start';show('v-rules')}
+  else show(S.prevView||'v-start');}
+
+$('tab-quiz').onclick=()=>setTab('quiz');
+$('tab-rules').onclick=()=>setTab('rules');
+$('btn-start').onclick=()=>{S.round=0;startRound(pool(),'전체')};
+$('btn-saved').onclick=()=>{const ws=store.get('saisiot-wrong')||[];const list=ALL.filter(x=>ws.includes(x.w));if(list.length){S.round=1;startRound(list,'지난 오답')}};
+$('btn-next').onclick=next;
+$('btn-quit').onclick=()=>{if(S.answered)S.i++;finish()};
+$('btn-retry').onclick=()=>{S.round++;startRound(S.wrong.map(({pick,...x})=>x),`오답 ${S.round}회차`)};
+$('btn-restart').onclick=()=>{show('v-start');updateCount()};
+document.addEventListener('keydown',e=>{
+  if($('v-quiz').hidden)return;
+  if(KEYMAP[e.key]&&!S.answered){const k=KEYMAP[e.key];if($('o-'+k))answer(k)}
+  else if(e.key==='Enter'&&S.answered){e.preventDefault();next()}
+});
+renderRules();updateCount();
+</script>
+</body>
+</html>
